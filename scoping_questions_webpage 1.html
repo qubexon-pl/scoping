@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scoping Questions</title>
+  <style>
+    :root {
+      --bg-1: #eef4ff;
+      --bg-2: #f8fbff;
+      --primary: #2563eb;
+      --primary-2: #7c3aed;
+      --primary-dark: #1d4ed8;
+      --text: #172033;
+      --muted: #64748b;
+      --card: rgba(255,255,255,0.94);
+      --border: #dbe4f0;
+      --focus: rgba(37,99,235,0.22);
+      --success: #16a34a;
+      --danger: #dc2626;
+      --shadow: 0 20px 55px rgba(15,23,42,0.14);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(124,58,237,0.18), transparent 32rem),
+        radial-gradient(circle at top right, rgba(37,99,235,0.18), transparent 28rem),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));
+    }
+
+    .shell { max-width: 1180px; margin: 0 auto; padding: 36px 20px 56px; }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 30px;
+      padding: 34px;
+      background: linear-gradient(135deg, rgba(37,99,235,0.95), rgba(124,58,237,0.92));
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 420px;
+      height: 420px;
+      right: -170px;
+      top: -190px;
+      background: rgba(255,255,255,0.14);
+      border-radius: 999px;
+    }
+
+    .hero-content { position: relative; z-index: 1; display: grid; gap: 12px; }
+    .eyebrow { text-transform: uppercase; letter-spacing: 0.16em; font-size: 0.78rem; opacity: 0.85; font-weight: 700; }
+    h1 { margin: 0; font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1.05; }
+    .subtitle { max-width: 780px; margin: 0; color: rgba(255,255,255,0.86); font-size: 1.05rem; line-height: 1.6; }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      margin: 22px 0;
+      align-items: center;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid rgba(219,228,240,0.85);
+      border-radius: var(--radius);
+      box-shadow: 0 12px 34px rgba(15,23,42,0.09);
+      backdrop-filter: blur(16px);
+    }
+
+    .meta-grid {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    label { display: block; font-size: 0.86rem; color: var(--muted); font-weight: 700; margin-bottom: 7px; }
+    input[type="text"], input[type="date"], textarea, select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 13px;
+      background: white;
+      color: var(--text);
+      font: inherit;
+      outline: none;
+      transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+    textarea { min-height: 112px; resize: vertical; line-height: 1.55; }
+    input:focus, textarea:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--focus); }
+
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+    button, .file-button {
+      border: 0;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-weight: 800;
+      font-size: 0.92rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+      user-select: none;
+      white-space: nowrap;
+    }
+    button:hover, .file-button:hover { transform: translateY(-1px); }
+    .primary { background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: white; box-shadow: 0 10px 22px rgba(37,99,235,0.24); }
+    .secondary { background: white; color: var(--primary-dark); border: 1px solid var(--border); }
+    .danger { background: #fff1f2; color: var(--danger); border: 1px solid #fecdd3; }
+    .success { background: #ecfdf5; color: var(--success); border: 1px solid #bbf7d0; }
+    input[type="file"] { display: none; }
+
+    .status-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 18px;
+      margin-bottom: 22px;
+    }
+    .progress-wrap { display: grid; gap: 8px; }
+    .progress-label { color: var(--muted); font-weight: 700; font-size: 0.9rem; }
+    .progress-bar { height: 12px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), var(--primary-2)); transition: width .24s ease; }
+    .toast { color: var(--muted); font-weight: 700; min-height: 22px; }
+
+    .search-panel { padding: 16px 18px; margin-bottom: 22px; display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; }
+    .section-nav { display: flex; gap: 8px; flex-wrap: wrap; }
+    .section-nav a { color: var(--primary-dark); text-decoration: none; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 999px; padding: 8px 11px; font-size: .84rem; font-weight: 800; }
+
+    .sections { display: grid; gap: 18px; }
+    details.section { background: var(--card); border: 1px solid rgba(219,228,240,0.85); border-radius: var(--radius); box-shadow: 0 12px 34px rgba(15,23,42,0.08); overflow: hidden; }
+    details.section[open] summary { border-bottom: 1px solid var(--border); }
+    summary { list-style: none; cursor: pointer; padding: 20px 22px; display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+    summary::-webkit-details-marker { display: none; }
+    .section-title { display: flex; align-items: center; gap: 12px; font-size: 1.12rem; font-weight: 900; }
+    .badge { background: linear-gradient(135deg, rgba(37,99,235,0.12), rgba(124,58,237,0.12)); color: var(--primary-dark); border: 1px solid #bfdbfe; border-radius: 999px; padding: 6px 10px; font-size: 0.78rem; font-weight: 900; }
+    .chevron { color: var(--muted); transition: transform .18s ease; }
+    details[open] .chevron { transform: rotate(180deg); }
+
+    .questions { padding: 8px 22px 22px; display: grid; gap: 16px; }
+    .question-card { border: 1px solid var(--border); border-radius: 18px; background: white; padding: 16px; display: grid; gap: 11px; }
+    .question-text { font-weight: 800; line-height: 1.45; }
+    .question-meta { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 0.82rem; font-weight: 700; }
+    .hint { color: var(--muted); font-size: 0.82rem; }
+
+    .footer-note { text-align: center; color: var(--muted); font-size: 0.86rem; margin-top: 28px; }
+
+    @media (max-width: 900px) {
+      .toolbar, .status-row, .search-panel { grid-template-columns: 1fr; }
+      .actions { justify-content: flex-start; }
+      .meta-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+      .shell { padding: 18px 12px 40px; }
+      .hero { padding: 24px; border-radius: 24px; }
+      .meta-grid { grid-template-columns: 1fr; }
+      summary { align-items: flex-start; }
+      .section-title { align-items: flex-start; }
+      button, .file-button { width: 100%; justify-content: center; }
+      .actions { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-content">
+        <div class="eyebrow">Data & AI scoping questionnaire</div>
+        <h1>Scoping Questions</h1>
+        <p class="subtitle">Capture discovery answers in one clean web form. Responses are saved locally in this browser and can be exported to a JSON file, then loaded again later.</p>
+      </div>
+    </section>
+
+    <section class="toolbar">
+      <div class="panel meta-grid">
+        <div><label for="projectName">Project / client</label><input id="projectName" type="text" placeholder="e.g. Fabric reporting migration" data-meta="projectName" /></div>
+        <div><label for="preparedBy">Prepared by</label><input id="preparedBy" type="text" placeholder="Name" data-meta="preparedBy" /></div>
+        <div><label for="workshopDate">Workshop date</label><input id="workshopDate" type="date" data-meta="workshopDate" /></div>
+        <div><label for="version">Version</label><input id="version" type="text" placeholder="v1.0" data-meta="version" /></div>
+      </div>
+      <div class="actions">
+        <button class="primary" id="exportJson">Export JSON</button>
+        <button class="secondary" id="exportMarkdown">Export Markdown</button>
+        <label class="file-button success" for="loadFile">Load JSON</label>
+        <input id="loadFile" type="file" accept="application/json,.json" />
+        <button class="danger" id="clearAll">Clear</button>
+      </div>
+    </section>
+
+    <section class="panel status-row">
+      <div class="progress-wrap">
+        <div class="progress-label"><span id="answeredCount">0</span> of <span id="totalCount">0</span> questions answered</div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+      <div class="toast" id="toast"></div>
+    </section>
+
+    <section class="panel search-panel">
+      <div><label for="search">Search / filter questions</label><input id="search" type="text" placeholder="Type keyword, e.g. KPI, Bronze, security, stakeholders..." /></div>
+      <nav class="section-nav" id="sectionNav" aria-label="Section navigation"></nav>
+    </section>
+
+    <section class="sections" id="sections"></section>
+    <p class="footer-note">Generated from the attached scoping questionnaire. Data is stored only in your browser unless you export it.</p>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'scoping_questions_v3_responses';
+    const questionnaire = [
+      { title: 'Business and scope', questions: [
+        'What are the expected business outcomes, value drivers, and success measures?',
+        'Which business processes, domains, and use cases are in scope for the initial release?',
+        'Which items are explicitly out of scope or planned for a later phase?',
+        'Who are the business owners, key users, technical stakeholders, and decision makers?',
+        'Is there a fixed go-live date, regulatory deadline, phased rollout plan, or critical business milestone?',
+        'What assumptions, constraints, and estimation boundaries should be used?'
+      ]},
+      { title: 'Users and access', questions: [
+        'Which user groups will use the solution, and how many users are expected per group?',
+        'What actions should each user group be able to perform?',
+        'Are external or guest users expected?',
+        'Are role-based access, row-level security, column-level security, or object-level security required?',
+        'Are audit trails, access reviews, or approval workflows required?'
+      ]},
+      { title: 'Data sources', questions: [
+        'Which source systems and datasets are required?',
+        'Who owns each source system and who can grant access?',
+        'What interfaces are available for each source: API, database, files, event stream, or existing reports?',
+        'What are the expected data volumes, refresh frequency, and historical retention requirements?',
+        'How many source objects are expected for ingestion?',
+        'Are there known data-quality issues, reconciliation requirements, or master-data dependencies?',
+        'Is sensitive, personal, confidential, or regulated data involved?'
+      ]},
+      { title: 'Requirements: Bronze layer', questions: [
+        'Which source objects need to be ingested into the Bronze layer?',
+        'Is a full load, incremental load, or both required for each source?',
+        'What historical data needs to be loaded initially?',
+        'How should ingestion errors, rejected records, and source availability issues be handled?'
+      ]},
+      { title: 'Requirements: Silver layer', questions: [
+        'How many transformation rules are expected?',
+        'What is the complexity of each transformation?',
+        'Are transformation rules already documented?',
+        'Are transformations limited to cleansing and standardization, or do they include complex business logic?',
+        'Are cross-source joins, harmonization rules, deduplication, or reference-data mappings required?',
+        'Are calculations dependent on historical data or effective dates?',
+        'How should transformation logic be implemented, for example SQL scripts, notebooks, or pipelines?'
+      ]},
+      { title: 'Requirements: Gold layer', questions: [
+        'What business entities need to be modelled as dimensions?',
+        'What business processes need to be modelled as fact tables?',
+        'What level of detail, or grain, is required for each fact table?',
+        'How many dimensions and fact tables are expected?',
+        'Are common dimensions shared across multiple business processes?',
+        'Are hierarchies, reference data, mapping tables, bridge tables, or many-to-many relationships required?',
+        'How many semantic models are required?',
+        'Is a shared enterprise semantic model required, or separate models for different domains?',
+        'Which business areas or user groups will each semantic model support?',
+        'Are calculation groups, perspectives, field parameters, or composite models required?'
+      ]},
+      { title: 'Requirements: Reporting layer', questions: [
+        'Which reports, dashboards need to be delivered?',
+        'How many reports or dashboards are required?',
+        'How many pages or tabs are expected in each report?',
+        'What are the primary user groups and business decisions supported by each report?',
+        'What granularity and historical depth are required for reporting?',
+        'Are wireframes, mock-ups, or examples of existing reports available?',
+        'Which visuals, tables, drill-through paths, filters, and interactions are required?',
+        'Which KPIs must be included, and can each KPI be defined with a formula, business owner, and expected result?',
+        'Which KPIs are simple aggregations, and which require complex calculations?',
+        'Are target values, thresholds, variances, trends, forecasts, budgets, or currency conversions required?',
+        'Are reports required in more than one language?',
+        'Are export, subscription, alert, or mobile-layout capabilities required?',
+        'What response-time expectations apply to report loading and user interactions?',
+        'Who will review, test, and formally approve each report?'
+      ]},
+      { title: 'Integration and automation', questions: [
+        'Is integration one-way or two-way, and which system is the source of truth?',
+        'How will authentication be handled for each integration?',
+        'Are scheduled jobs, event-driven triggers, or manual runs required?',
+        'What should happen when an integration fails: retry, alert, manual correction, or queue for later processing?',
+        'Are orchestration, dependency handling, or automated notifications required?'
+      ]},
+      { title: 'Technical architecture', questions: [
+        'Are there network constraints such as private endpoints, VPN, firewall rules, gateways, or IP allowlists?',
+        'What logging, monitoring, alerting, and support model is expected?',
+        'What backup, disaster-recovery, retention, and recovery-time requirements apply?',
+        'What are the expected concurrent-user, peak-load, and capacity requirements?',
+        'What performance expectations apply to data processing and key user actions?'
+      ]},
+      { title: 'Delivery and governance', questions: [
+        'Who will provide requirements clarification and timely feedback during delivery?',
+        'Who will prepare test cases and sign off UAT?',
+        'Which requirements are mandatory for the initial release versus candidates for a later phase or change request?',
+        'What dependencies, risks, and decisions could affect the estimate or timeline?',
+        'What documentation, training, and handover materials are required?',
+        'Who will own the solution after go-live?',
+        'Are there documentation gaps or limited stakeholder availability that could impact discovery or delivery?'
+      ]}
+    ];
+
+    const sectionsEl = document.getElementById('sections');
+    const navEl = document.getElementById('sectionNav');
+    const toastEl = document.getElementById('toast');
+    const totalCountEl = document.getElementById('totalCount');
+    const answeredCountEl = document.getElementById('answeredCount');
+    const progressFillEl = document.getElementById('progressFill');
+
+    let responses = { meta: {}, answers: {} };
+
+    const slug = text => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const questionId = (sectionIndex, questionIndex) => `q_${sectionIndex + 1}_${questionIndex + 1}`;
+    const totalQuestions = questionnaire.reduce((sum, section) => sum + section.questions.length, 0);
+    totalCountEl.textContent = totalQuestions;
+
+    function render() {
+      sectionsEl.innerHTML = '';
+      navEl.innerHTML = '';
+      questionnaire.forEach((section, sIndex) => {
+        const sectionId = slug(section.title);
+        const navLink = document.createElement('a');
+        navLink.href = `#${sectionId}`;
+        navLink.textContent = section.title.replace('Requirements: ', '');
+        navEl.appendChild(navLink);
+
+        const details = document.createElement('details');
+        details.className = 'section';
+        details.id = sectionId;
+        details.open = true;
+
+        const summary = document.createElement('summary');
+        summary.innerHTML = `<div class="section-title"><span>${section.title}</span><span class="badge">${section.questions.length} questions</span></div><span class="chevron">⌄</span>`;
+        details.appendChild(summary);
+
+        const questionsWrap = document.createElement('div');
+        questionsWrap.className = 'questions';
+
+        section.questions.forEach((question, qIndex) => {
+          const id = questionId(sIndex, qIndex);
+          const card = document.createElement('article');
+          card.className = 'question-card';
+          card.dataset.question = question.toLowerCase();
+          card.dataset.section = section.title.toLowerCase();
+          card.innerHTML = `
+            <div class="question-meta"><span>${sIndex + 1}.${qIndex + 1}</span><span>${section.title}</span></div>
+            <div class="question-text">${question}</div>
+            <textarea id="${id}" data-answer="${id}" placeholder="Type response, assumptions, dependencies, risks or notes..."></textarea>
+          `;
+          questionsWrap.appendChild(card);
+        });
+
+        details.appendChild(questionsWrap);
+        sectionsEl.appendChild(details);
+      });
+      bindInputs();
+      updateFromState();
+      updateProgress();
+    }
+
+    function bindInputs() {
+      document.querySelectorAll('[data-answer]').forEach(el => {
+        el.addEventListener('input', () => {
+          responses.answers[el.dataset.answer] = el.value;
+          persist();
+          updateProgress();
+        });
+      });
+      document.querySelectorAll('[data-meta]').forEach(el => {
+        el.addEventListener('input', () => {
+          responses.meta[el.dataset.meta] = el.value;
+          persist();
+        });
+      });
+    }
+
+    function updateFromState() {
+      document.querySelectorAll('[data-answer]').forEach(el => { el.value = responses.answers[el.dataset.answer] || ''; });
+      document.querySelectorAll('[data-meta]').forEach(el => { el.value = responses.meta[el.dataset.meta] || ''; });
+    }
+
+    function updateProgress() {
+      const answered = Object.values(responses.answers).filter(v => v && v.trim().length > 0).length;
+      answeredCountEl.textContent = answered;
+      progressFillEl.style.width = `${Math.round(answered / totalQuestions * 100)}%`;
+    }
+
+    function persist() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(responses));
+      showToast('Saved locally');
+    }
+
+    function showToast(message) {
+      toastEl.textContent = message;
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toastEl.textContent = '', 1800);
+    }
+
+    function loadLocal() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) responses = JSON.parse(raw);
+      } catch (_) {
+        responses = { meta: {}, answers: {} };
+      }
+    }
+
+    function buildExportObject() {
+      const sections = questionnaire.map((section, sIndex) => ({
+        section: section.title,
+        questions: section.questions.map((question, qIndex) => {
+          const id = questionId(sIndex, qIndex);
+          return { id, question, response: responses.answers[id] || '' };
+        })
+      }));
+      return {
+        source: 'Scoping questions_v3.docx',
+        exportedAt: new Date().toISOString(),
+        meta: responses.meta,
+        sections
+      };
+    }
+
+    function downloadFile(filename, content, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('exportJson').addEventListener('click', () => {
+      downloadFile('scoping-responses.json', JSON.stringify(buildExportObject(), null, 2), 'application/json');
+      showToast('JSON exported');
+    });
+
+    document.getElementById('exportMarkdown').addEventListener('click', () => {
+      const data = buildExportObject();
+      const lines = [];
+      lines.push('# Scoping Questions - Responses');
+      lines.push('');
+      lines.push(`- Project / client: ${data.meta.projectName || ''}`);
+      lines.push(`- Prepared by: ${data.meta.preparedBy || ''}`);
+      lines.push(`- Workshop date: ${data.meta.workshopDate || ''}`);
+      lines.push(`- Version: ${data.meta.version || ''}`);
+      lines.push('');
+      data.sections.forEach(section => {
+        lines.push(`## ${section.section}`);
+        lines.push('');
+        section.questions.forEach(item => {
+          lines.push(`### ${item.question}`);
+          lines.push(item.response ? item.response : '_No response provided._');
+          lines.push('');
+        });
+      });
+      downloadFile('scoping-responses.md', lines.join('\n'), 'text/markdown');
+      showToast('Markdown exported');
+    });
+
+    document.getElementById('loadFile').addEventListener('change', event => {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const loaded = JSON.parse(reader.result);
+          responses = { meta: loaded.meta || {}, answers: {} };
+          if (loaded.answers) responses.answers = loaded.answers;
+          if (Array.isArray(loaded.sections)) {
+            loaded.sections.forEach(section => {
+              (section.questions || []).forEach(item => {
+                if (item.id) responses.answers[item.id] = item.response || '';
+              });
+            });
+          }
+          persist();
+          updateFromState();
+          updateProgress();
+          showToast('JSON loaded');
+        } catch (error) {
+          showToast('Could not load JSON');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    });
+
+    document.getElementById('clearAll').addEventListener('click', () => {
+      if (!confirm('Clear all local responses?')) return;
+      responses = { meta: {}, answers: {} };
+      localStorage.removeItem(STORAGE_KEY);
+      updateFromState();
+      updateProgress();
+      showToast('Cleared');
+    });
+
+    document.getElementById('search').addEventListener('input', event => {
+      const term = event.target.value.trim().toLowerCase();
+      document.querySelectorAll('.question-card').forEach(card => {
+        const match = !term || card.dataset.question.includes(term) || card.dataset.section.includes(term);
+        card.style.display = match ? 'grid' : 'none';
+      });
+      document.querySelectorAll('details.section').forEach(section => {
+        const visible = [...section.querySelectorAll('.question-card')].some(card => card.style.display !== 'none');
+        section.style.display = visible ? 'block' : 'none';
+        if (term && visible) section.open = true;
+      });
+    });
+
+    loadLocal();
+    render();
+  </script>
+</body>
+</html>
